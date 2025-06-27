@@ -1,7 +1,11 @@
 // lib/screens/home_screen.dart
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:r3/screens/disruption_hub_screen.dart';
 import 'package:r3/services/app_state.dart';
+import 'package:r3/services/usage_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -11,19 +15,43 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  // We need an instance of UsageService to access the stream
+  final UsageService _usageService = UsageService();
+  StreamSubscription? _distractionSubscription;
+
   @override
   void initState() {
     super.initState();
-    // Use Provider to access the AppState and start monitoring
-    // We use addPostFrameCallback to ensure the build is complete
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<AppState>(context, listen: false).startMonitoringService();
+      final appState = Provider.of<AppState>(context, listen: false);
+      
+      // Start monitoring
+      appState.startMonitoringService();
+      
+      // --- THE NEW PART: LISTEN FOR DISTRACTIONS ---
+      _distractionSubscription = _usageService.distractionStream.listen((packageName) {
+        // When a distraction is detected, show the hub as a dialog
+        showDialog(
+          context: context,
+          barrierDismissible: false, // User must interact
+          builder: (context) => const DisruptionHubScreen(),
+        ).then((_) {
+          // IMPORTANT: After the dialog is closed, restart monitoring.
+          appState.startMonitoringService();
+        });
+      });
     });
   }
 
   @override
+  void dispose() {
+    // Always cancel subscriptions to avoid memory leaks
+    _distractionSubscription?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // We use a Consumer to listen for changes in AppState
     return Consumer<AppState>(
       builder: (context, appState, child) {
         return Scaffold(

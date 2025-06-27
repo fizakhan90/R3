@@ -36,6 +36,7 @@ dependencies:
   provider: ^6.1.2 # For state management (optional but good practice)
   percent_indicator: ^4.2.3 # For the breathing circle
   page_view_dot_indicator: ^2.1.0 # For a nice page indicator
+  http: ^1.2.1 # Add this line
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

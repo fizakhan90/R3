@@ -36,7 +36,7 @@ class DisruptionHubScreen extends StatelessWidget {
                   // Close the dialog and open the learning screen
                   Navigator.of(context).pop(); // Close this hub screen first
                   Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => const LearningActivityScreen(topic: "Chess"), // Let's learn Chess for now
+                    builder: (context) => const LearningActivityScreen(), // Let's learn Chess for now
                   ));
                 },
               ),

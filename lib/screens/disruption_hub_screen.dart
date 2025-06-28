@@ -1,6 +1,7 @@
 // lib/screens/disruption_hub_screen.dart
 import 'package:flutter/material.dart';
 import 'package:r3/screens/learning_activity_screen.dart';
+import 'package:r3/services/distraction_monitor.dart';
 
 class DisruptionHubScreen extends StatelessWidget {
   const DisruptionHubScreen({super.key});
@@ -16,6 +17,14 @@ class DisruptionHubScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              FloatingActionButton(
+  onPressed: () {
+    // Test the disruption screen
+    DistractionMonitor.instance.testDisruptionScreen();
+  },
+  child: Icon(Icons.warning),
+  tooltip: 'Test Disruption Screen',
+),
               const Text(
                 "A Mindful Pause",
                 textAlign: TextAlign.center,

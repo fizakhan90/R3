@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:page_view_dot_indicator/page_view_dot_indicator.dart';
 import 'package:r3/screens/home_screen.dart';
+import 'package:r3/screens/onboarding/pages/permissions_page.dart';
 import 'package:r3/screens/onboarding/pages/select_apps_page.dart';
 import 'package:r3/screens/onboarding/pages/set_goal_pages.dart';
 import 'package:r3/screens/onboarding/pages/welcome_page.dart';
@@ -69,11 +70,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         onAppSelected: _onAppSelected,
         selectedApps: _selectedAppPackages,
       ),
+      const PermissionsPage(), 
       SetGoalPage(
         onGoalChanged: _onGoalChanged,
         initialGoal: _screenTimeGoal,
         onFinished: _completeOnboarding,
       ),
+      // <-- ADD THE NEW PAGE HERE
+      
     ];
 
     return Scaffold(

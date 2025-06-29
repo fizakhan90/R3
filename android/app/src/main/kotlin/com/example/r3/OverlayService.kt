@@ -1,8 +1,9 @@
-// android/app/src/main/kotlin/com/example/r3/OverlayService.kt
 package com.example.r3
 
 import android.app.Service
+import android.content.Context
 import android.content.Intent
+import android.app.usage.UsageStatsManager
 import android.graphics.PixelFormat
 import android.os.Build
 import android.os.IBinder
@@ -11,9 +12,9 @@ import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import java.time.Duration
 
 class OverlayService : Service() {
-
     private var windowManager: WindowManager? = null
     private var overlayView: View? = null
 
@@ -30,35 +31,32 @@ class OverlayService : Service() {
                 val appName = intent.getStringExtra("app_name") ?: "a distracting app"
                 showDisruptionOverlay(appName)
             }
-            "HIDE_DISRUPTION" -> {
-                hideDisruptionOverlay()
-            }
+            "HIDE_DISRUPTION" -> hideDisruptionOverlay()
         }
         return START_NOT_STICKY
     }
 
     private fun showDisruptionOverlay(appName: String) {
-        if (overlayView != null) return // Already showing
+        if (overlayView != null) return
 
-        // Create the overlay layout
-        overlayView = createOverlayView(appName)
+        val minutes = getTodayScreenTimeMinutes()
+        overlayView = createOverlayView(appName, minutes)
 
         val layoutParams = WindowManager.LayoutParams(
             WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.MATCH_PARENT,
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
                 WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-            } else {
+            else
                 @Suppress("DEPRECATION")
-                WindowManager.LayoutParams.TYPE_PHONE
-            },
+                WindowManager.LayoutParams.TYPE_PHONE,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                     WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
                     WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED,
             PixelFormat.TRANSLUCENT
-        )
-
-        layoutParams.gravity = Gravity.CENTER
+        ).apply {
+            gravity = Gravity.CENTER
+        }
 
         try {
             windowManager?.addView(overlayView, layoutParams)
@@ -67,77 +65,98 @@ class OverlayService : Service() {
         }
     }
 
-    private fun createOverlayView(appName: String): View {
-        val context = this
-        
-        // Create main container
-        val container = LinearLayout(context).apply {
+    private fun getTodayScreenTimeMinutes(): Long {
+        val usm = getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
+        val now = System.currentTimeMillis()
+        val start = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+            now - Duration.ofDays(1).toMillis()
+        else
+            now - 24L * 60 * 60 * 1000
+
+        val stats = usm.queryAndAggregateUsageStats(start, now)
+        val totalMs = stats.values.sumOf { it.totalTimeInForeground }
+        return totalMs / 1000 / 60
+    }
+
+    private fun createOverlayView(appName: String, minutes: Long): View {
+        val ctx = this
+        val container = LinearLayout(ctx).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(80, 0, 80, 0)
             gravity = Gravity.CENTER
-            setBackgroundColor(ContextCompat.getColor(context, android.R.color.black))
+            setBackgroundColor(ContextCompat.getColor(ctx, android.R.color.black))
             alpha = 0.95f
         }
 
-        // Title
-        val title = TextView(context).apply {
+        val title = TextView(ctx).apply {
             text = "A Mindful Pause"
             textSize = 28f
-            setTextColor(ContextCompat.getColor(context, android.R.color.white))
+            setTextColor(ContextCompat.getColor(ctx, android.R.color.white))
             gravity = Gravity.CENTER
-            setPadding(0, 0, 0, 40)
             setTypeface(null, android.graphics.Typeface.BOLD)
+            setPadding(0, 0, 0, 40)
         }
 
-        // Subtitle
-        val subtitle = TextView(context).apply {
-            text = "You've opened $appName. Choose a better reward."
+        val subtitle = TextView(ctx).apply {
+            text = "You’ve opened $appName. Would you like to pause a moment?"
             textSize = 16f
-            setTextColor(ContextCompat.getColor(context, android.R.color.white))
+            setTextColor(ContextCompat.getColor(ctx, android.R.color.white))
             gravity = Gravity.CENTER
             alpha = 0.7f
-            setPadding(0, 0, 0, 80)
+            setPadding(0, 0, 0, 20)
         }
 
-        // Learn button
-        val learnButton = Button(context).apply {
-            text = "🧠 Learn Something New"
+        val usageInfo = TextView(ctx).apply {
+            text = "🎯 Screen time today: $minutes min"
+            textSize = 18f
+            setTextColor(ContextCompat.getColor(ctx, android.R.color.white))
+            gravity = Gravity.CENTER
+            setPadding(0, 0, 0, 20)
+        }
+
+        val mentalImpact = TextView(ctx).apply {
+            text = "Studies show excessive screen use is linked to anxiety, depression, and poor sleep. Take a break for your well-being."
+            textSize = 14f
+            setTextColor(ContextCompat.getColor(ctx, android.R.color.white))
+            gravity = Gravity.CENTER
+            alpha = 0.7f
+            setPadding(0, 0, 0, 60)
+        }
+
+        val learnButton = Button(ctx).apply {
+            text = "🌿 Take a Mindful Break"
             textSize = 16f
-            setTextColor(ContextCompat.getColor(context, android.R.color.white))
-            setBackgroundColor(ContextCompat.getColor(context, android.R.color.holo_purple))
+            setTextColor(ContextCompat.getColor(ctx, android.R.color.white))
+            setBackgroundColor(ContextCompat.getColor(ctx, android.R.color.holo_green_dark))
             setPadding(40, 30, 40, 30)
-            
             setOnClickListener {
-                // Open your learning activity and close overlay
-                openLearningActivity()
+                openMindfulBreak() // ← Launch like before
                 hideDisruptionOverlay()
             }
         }
 
-        // Continue button
-        val continueButton = Button(context).apply {
-            text = "Continue to app anyway"
+        val continueBtn = Button(ctx).apply {
+            text = "Continue anyway"
             textSize = 14f
-            setTextColor(ContextCompat.getColor(context, android.R.color.white))
+            setTextColor(ContextCompat.getColor(ctx, android.R.color.white))
             background = null
             alpha = 0.6f
             setPadding(0, 40, 0, 0)
-            
-            setOnClickListener {
-                hideDisruptionOverlay()
-            }
+            setOnClickListener { hideDisruptionOverlay() }
         }
 
-        // Add all views to container
-        container.addView(title)
-        container.addView(subtitle)
-        container.addView(learnButton)
-        container.addView(continueButton)
-
-        return container
+        return container.apply {
+            addView(title)
+            addView(subtitle)
+            addView(usageInfo)
+            addView(mentalImpact)
+            addView(learnButton)
+            addView(continueBtn)
+        }
     }
 
-    private fun openLearningActivity() {
+    private fun openMindfulBreak() {
+        // 🧠 Reuse the existing "open_learning" intent to navigate inside Flutter
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             putExtra("open_learning", true)
@@ -147,11 +166,8 @@ class OverlayService : Service() {
 
     private fun hideDisruptionOverlay() {
         overlayView?.let {
-            try {
-                windowManager?.removeView(it)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+            try { windowManager?.removeView(it) }
+            catch (e: Exception) { e.printStackTrace() }
             overlayView = null
         }
         stopSelf()

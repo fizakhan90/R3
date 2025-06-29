@@ -67,8 +67,11 @@
 // }
 import 'package:flutter/material.dart';
 import 'package:r3/screens/learning_activity_screen.dart';
-import 'package:r3/services/distraction_monitor.dart';
-import 'package:r3/widgets/healthy_habit_card.dart'; // ✅ Import new habit card
+import 'package:r3/widgets/healthy_habit_card.dart';
+import 'package:r3/screens/breathing_screen.dart';
+import 'package:r3/screens/puzzle_screen.dart';
+
+
 
 class DisruptionHubScreen extends StatelessWidget {
   const DisruptionHubScreen({super.key});
@@ -84,17 +87,8 @@ class DisruptionHubScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              FloatingActionButton(
-                onPressed: () {
-                  // Test the disruption screen
-                  DistractionMonitor.instance.testDisruptionScreen();
-                },
-                child: const Icon(Icons.warning),
-                tooltip: 'Test Disruption Screen',
-              ),
-              const SizedBox(height: 16),
               const Text(
-                "A Mindful Pause",
+                "🌱 Gentle Reminder",
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 28,
@@ -104,7 +98,7 @@ class DisruptionHubScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               const Text(
-                "You've opened a distracting app. Do you want to try something healthier?",
+                "You've opened a distracting app. Would you like to take a healthy pause instead?",
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 16, color: Colors.white70),
               ),
@@ -164,10 +158,10 @@ class DisruptionHubScreen extends StatelessWidget {
                   style: TextStyle(color: Colors.white, fontSize: 16),
                 ),
                 onPressed: () {
-                  // Placeholder - breathing screen coming soon
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Breathing break coming soon!"),
+                  Navigator.of(context).pop();
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const BreathingScreen(),
                     ),
                   );
                 },
@@ -186,10 +180,10 @@ class DisruptionHubScreen extends StatelessWidget {
                   style: TextStyle(color: Colors.white, fontSize: 16),
                 ),
                 onPressed: () {
-                  // Placeholder - puzzle coming soon
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Puzzle feature coming soon!"),
+                  Navigator.of(context).pop();
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const PuzzleScreen(),
                     ),
                   );
                 },

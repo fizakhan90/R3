@@ -5,17 +5,14 @@ import 'package:provider/provider.dart';
 import 'package:r3/main.dart';
 import 'package:r3/screens/disruption_hub_screen.dart';
 import 'package:r3/services/app_state.dart';
-import 'package:r3/services/usage_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
-
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final UsageService _usageService = UsageService();
   StreamSubscription? _distractionSubscription;
 
   @override
@@ -27,16 +24,19 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _startMonitoring() {
+    final appState = Provider.of<AppState>(context, listen: false);
     _distractionSubscription?.cancel();
-    _distractionSubscription = _usageService.distractionStream.listen((packageName) {
+    _distractionSubscription = appState.usageService.distractionStream.listen((packageName) {
+      // Temporarily stop listening to avoid multiple triggers
+      _distractionSubscription?.pause();
       final currentContext = navigatorKey.currentContext;
       if (currentContext != null) {
-        // This is the correct, simple, and working logic.
         Navigator.of(currentContext).push(
           MaterialPageRoute(builder: (context) => const DisruptionHubScreen()),
         ).then((_) {
-          Provider.of<AppState>(currentContext, listen: false).startMonitoringService();
-          _startMonitoring();
+          // After the entire disruption flow is over, restart monitoring.
+          appState.startMonitoringService();
+          if (mounted) _distractionSubscription?.resume();
         });
       }
     });
@@ -84,31 +84,15 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildStatusWidget(String status) {
-    String message;
-    Color color;
-    IconData icon;
+    String message; Color color; IconData icon;
     switch (status) {
-      case "STARTED_SUCCESSFULLY":
-        message = "Monitoring is active.";
-        color = Colors.green;
-        icon = Icons.shield_outlined;
-        break;
-      case "PERMISSION_DENIED":
-        message = "ACTION REQUIRED: Grant Usage Access permission.";
-        color = Colors.amber;
-        icon = Icons.warning_amber_rounded;
-        break;
-      default:
-        message = "Status: $status";
-        color = Colors.grey;
-        icon = Icons.info_outline;
+      case "STARTED_SUCCESSFULLY": message = "Monitoring is active."; color = Colors.green; icon = Icons.shield_outlined; break;
+      case "PERMISSION_DENIED": message = "ACTION REQUIRED: Grant Usage Access permission."; color = Colors.amber; icon = Icons.warning_amber_rounded; break;
+      default: message = "Status: $status"; color = Colors.grey; icon = Icons.info_outline; break;
     }
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(12),
-      ),
+      decoration: BoxDecoration(color: color.withOpacity(0.15), borderRadius: BorderRadius.circular(12)),
       child: Row(
         children: [
           Icon(icon, color: color, size: 30),

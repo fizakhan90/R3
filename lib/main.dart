@@ -6,10 +6,9 @@ import 'package:r3/screens/onboarding/onboarding_screen.dart';
 import 'package:r3/services/app_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-// This GlobalKey is the correct way to handle navigation from background events.
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-Future<void> main() async {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();
   final bool onboardingComplete = prefs.getBool('onboardingComplete') ?? false;
@@ -25,23 +24,21 @@ class MyApp extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (context) => AppState(),
       child: MaterialApp(
-        navigatorKey: navigatorKey, // Assign the key here
+        navigatorKey: navigatorKey,
         title: 'R3',
         theme: ThemeData.dark().copyWith(
           scaffoldBackgroundColor: const Color(0xFF121212),
           primaryColor: Colors.deepPurple,
         ),
         debugShowCheckedModeBanner: false,
-        home: onboardingComplete ? const AppWrapper() : const OnboardingScreen(),
+        home: onboardingComplete ? const AppWrapper() : OnboardingScreen(),
       ),
     );
   }
 }
 
-// This wrapper correctly initializes the monitoring service when the app starts.
 class AppWrapper extends StatefulWidget {
   const AppWrapper({super.key});
-
   @override
   State<AppWrapper> createState() => _AppWrapperState();
 }
@@ -54,7 +51,6 @@ class _AppWrapperState extends State<AppWrapper> {
       Provider.of<AppState>(context, listen: false).startMonitoringService();
     });
   }
-
   @override
   Widget build(BuildContext context) {
     return const HomeScreen();

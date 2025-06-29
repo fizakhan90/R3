@@ -1,6 +1,8 @@
 // lib/screens/onboarding/pages/select_apps_page.dart
 import 'package:flutter/material.dart';
-import 'package:r3/services/usage_service.dart';
+import 'package:provider/provider.dart'; // Import Provider
+import 'package:r3/services/app_state.dart';   // Import AppState
+import 'package:r3/services/usage_service.dart'; // Import the correct UsageService
 
 class SelectAppsPage extends StatefulWidget {
   final Function(String, bool) onAppSelected;
@@ -17,15 +19,21 @@ class SelectAppsPage extends StatefulWidget {
 }
 
 class _SelectAppsPageState extends State<SelectAppsPage> {
-  // We create an instance of our "bridge" to talk to the native code.
-  final UsageService _usageService = UsageService();
+  // We no longer create an instance here. We will get it from AppState.
   Future<List<AppInfo>>? _appsFuture;
 
   @override
   void initState() {
     super.initState();
-    // Start fetching the apps as soon as the widget is created.
-    _appsFuture = _usageService.getInstalledApps();
+    // Use the AppState's instance of UsageService to fetch the apps.
+    // We use addPostFrameCallback to ensure the context is ready.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      setState(() {
+        _appsFuture = Provider.of<AppState>(context, listen: false)
+            .usageService
+            .getInstalledApps();
+      });
+    });
   }
 
   @override
@@ -54,16 +62,12 @@ class _SelectAppsPageState extends State<SelectAppsPage> {
           ),
           const SizedBox(height: 24),
           Expanded(
-            // FutureBuilder is perfect for this. It shows a loading spinner
-            // while waiting for the apps, and then shows the list.
             child: FutureBuilder<List<AppInfo>>(
               future: _appsFuture,
               builder: (context, snapshot) {
-                // While loading:
-                if (snapshot.connectionState == ConnectionState.waiting) {
+                if (_appsFuture == null || snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                // If there was an error:
                 if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
                   return const Center(
                     child: Text(
@@ -73,9 +77,9 @@ class _SelectAppsPageState extends State<SelectAppsPage> {
                     ),
                   );
                 }
-                // When data is ready:
+                
                 final apps = snapshot.data!;
-                apps.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+                // The list is already sorted by the service now.
 
                 return ListView.builder(
                   itemCount: apps.length,
@@ -91,8 +95,6 @@ class _SelectAppsPageState extends State<SelectAppsPage> {
                       value: isSelected,
                       onChanged: (bool? value) {
                         if (value != null) {
-                          // This calls the function in onboarding_screen.dart
-                          // to update the list of selected apps.
                           widget.onAppSelected(app.packageName, value);
                         }
                       },

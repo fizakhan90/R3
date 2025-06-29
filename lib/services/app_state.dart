@@ -13,7 +13,7 @@ class AppState with ChangeNotifier {
   // --- State Variables ---
   // These hold the data for our app. They are private.
   List<String> _distractingApps = [];
-  int _screenTimeGoal = 60;
+  final int _screenTimeGoal = 60;
   
   // This holds the status of the monitoring service (e.g., "STARTED_SUCCESSFULLY").
   String monitoringStatus = "Initializing...";

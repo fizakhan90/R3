@@ -30,13 +30,26 @@ class DistractionMonitor {
     });
   }
   
+  // Future<void> _showDisruptionScreen(String packageName) async {
+  //   // The overlay is now handled by native Android code
+  //   // This is just for logging/analytics purposes
+  //   print('🚨 Distraction logged for analytics: $packageName');
+  //   _isDisruptionScreenShowing = false;
+  // }
   Future<void> _showDisruptionScreen(String packageName) async {
-    // The overlay is now handled by native Android code
-    // This is just for logging/analytics purposes
-    print('🚨 Distraction logged for analytics: $packageName');
-    _isDisruptionScreenShowing = false;
-  }
-  
+  if (_context == null || _isDisruptionScreenShowing) return;
+
+  _isDisruptionScreenShowing = true;
+
+  await showDialog(
+    context: _context!,
+    barrierDismissible: false,
+    builder: (context) => const DisruptionHubScreen(),
+  );
+
+  _isDisruptionScreenShowing = false;
+}
+
   void dispose() {
     _distractionSubscription?.cancel();
     _usageService.dispose();

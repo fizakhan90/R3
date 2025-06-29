@@ -56,7 +56,6 @@ class MyApp extends StatelessWidget {
           primaryColor: Colors.deepPurple,
         ),
         debugShowCheckedModeBanner: false,
-        home: LearningActivityScreen()
         home: AppWrapper(onboardingComplete: onboardingComplete),
       ),
     );

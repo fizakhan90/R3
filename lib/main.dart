@@ -1,9 +1,9 @@
 // lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:r3/screens/home_screen.dart';
+import 'package:r3/main_app_screen.dart';
+import 'package:r3/screens/learning/learning_theme.dart';
 import 'package:r3/screens/onboarding/onboarding_screen.dart';
-import 'package:r3/screens/learning_activity_screen.dart';
 import 'package:r3/services/app_state.dart';
 import 'package:r3/services/distraction_monitor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -17,29 +17,6 @@ Future<void> main() async {
   runApp(MyApp(onboardingComplete: onboardingComplete));
 }
 
-// class MyApp extends StatelessWidget {
-//   final bool onboardingComplete;
-  
-//   const MyApp({super.key, required this.onboardingComplete});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     // The ChangeNotifierProvider makes our AppState available everywhere
-//     return ChangeNotifierProvider(
-//       create: (context) => AppState(),
-//       child: MaterialApp(
-//         title: 'R3',
-//         theme: ThemeData.dark().copyWith(
-//           scaffoldBackgroundColor: Color(0xFF121212),
-//           primaryColor: Colors.deepPurple,
-//         ),
-//         debugShowCheckedModeBanner: false,
-//         home: onboardingComplete ? HomeScreen() : OnboardingScreen(),
-//       ),
-//     );
-//   }
-// }
-
 class MyApp extends StatelessWidget {
   final bool onboardingComplete;
   
@@ -51,18 +28,18 @@ class MyApp extends StatelessWidget {
       create: (context) => AppState(),
       child: MaterialApp(
         title: 'R3',
-        theme: ThemeData.dark().copyWith(
-          scaffoldBackgroundColor: Color(0xFF121212),
-          primaryColor: Colors.deepPurple,
-        ),
+        // Apply the consistent, polished theme across the entire app
+        theme: LearningTheme.theme,
         debugShowCheckedModeBanner: false,
+        // The AppWrapper is the perfect place to route the user
         home: AppWrapper(onboardingComplete: onboardingComplete),
       ),
     );
   }
 }
 
-// New wrapper class to handle distraction monitoring
+/// This wrapper handles app-wide concerns like distraction monitoring
+/// and now also routes the user to the correct initial screen.
 class AppWrapper extends StatefulWidget {
   final bool onboardingComplete;
   
@@ -90,6 +67,8 @@ class _AppWrapperState extends State<AppWrapper> {
   
   @override
   Widget build(BuildContext context) {
-    return widget.onboardingComplete ? HomeScreen() : OnboardingScreen();
+    // If onboarding is not complete, show that first.
+    // Otherwise, show the main app with its bottom navigation bar.
+    return widget.onboardingComplete ? const MainAppScreen() : const OnboardingScreen();
   }
 }

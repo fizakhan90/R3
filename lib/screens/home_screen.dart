@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:r3/screens/disruption_hub_screen.dart';
-import 'package:r3/screens/learning_activity_screen.dart'; // ✅ Make sure this exists
+import 'package:r3/screens/learning/learning_activity_screen.dart'; // ✅ Make sure this exists
 import 'package:r3/services/app_state.dart';
 import 'package:r3/services/usage_service.dart';
 

@@ -66,7 +66,7 @@
 //   }
 // }
 import 'package:flutter/material.dart';
-import 'package:r3/screens/learning_activity_screen.dart';
+import 'package:r3/screens/learning/learning_activity_screen.dart';
 import 'package:r3/widgets/healthy_habit_card.dart';
 import 'package:r3/screens/breathing_screen.dart';
 import 'package:r3/screens/puzzle_screen.dart';

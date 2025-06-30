@@ -6,6 +6,7 @@ import 'package:r3/screens/learning/learning_theme.dart';
 import 'package:r3/screens/onboarding/onboarding_screen.dart';
 import 'package:r3/services/app_state.dart';
 import 'package:r3/services/distraction_monitor.dart';
+import 'package:r3/services/user_progress_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> main() async {
@@ -13,6 +14,9 @@ Future<void> main() async {
   
   final prefs = await SharedPreferences.getInstance();
   final bool onboardingComplete = prefs.getBool('onboardingComplete') ?? false;
+
+  // Load user progress from local storage before the app runs
+  await UserProgressService.instance.loadProgress();
   
   runApp(MyApp(onboardingComplete: onboardingComplete));
 }
@@ -24,22 +28,21 @@ class MyApp extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => AppState(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => AppState()),
+        ChangeNotifierProvider.value(value: UserProgressService.instance),
+      ],
       child: MaterialApp(
         title: 'R3',
-        // Apply the consistent, polished theme across the entire app
         theme: LearningTheme.theme,
         debugShowCheckedModeBanner: false,
-        // The AppWrapper is the perfect place to route the user
         home: AppWrapper(onboardingComplete: onboardingComplete),
       ),
     );
   }
 }
 
-/// This wrapper handles app-wide concerns like distraction monitoring
-/// and now also routes the user to the correct initial screen.
 class AppWrapper extends StatefulWidget {
   final bool onboardingComplete;
   
@@ -53,7 +56,6 @@ class _AppWrapperState extends State<AppWrapper> {
   @override
   void initState() {
     super.initState();
-    // Initialize distraction monitoring after the first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
       DistractionMonitor.instance.initialize(context);
     });
@@ -67,8 +69,6 @@ class _AppWrapperState extends State<AppWrapper> {
   
   @override
   Widget build(BuildContext context) {
-    // If onboarding is not complete, show that first.
-    // Otherwise, show the main app with its bottom navigation bar.
     return widget.onboardingComplete ? const MainAppScreen() : const OnboardingScreen();
   }
 }

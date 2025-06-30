@@ -1,8 +1,8 @@
 // lib/screens/main_app_screen.dart
 import 'package:flutter/material.dart';
-import 'package:r3/screens/gamification/gamification_screen.dart'; // Import your new screens
+import 'package:r3/screens/challenges_screen.dart'; // ✅ Import the new ChallengesScreen
+import 'package:r3/screens/gamification/gamification_screen.dart';
 import 'package:r3/screens/home_screen.dart';
-import 'package:r3/screens/learning/learning_activity_screen.dart';
 import 'package:r3/screens/learning/learning_theme.dart';
 
 class MainAppScreen extends StatefulWidget {
@@ -15,10 +15,10 @@ class MainAppScreen extends StatefulWidget {
 class _MainAppScreenState extends State<MainAppScreen> {
   int _selectedIndex = 0;
 
-  // List of the main pages for your navigation
+  // ✅ Updated list of pages for the navigation
   static const List<Widget> _pages = <Widget>[
     HomeScreen(),
-    LearningActivityScreen(),
+    ChallengesScreen(), // Replaced Learn with Challenges
     GamificationScreen(),
   ];
 
@@ -31,21 +31,20 @@ class _MainAppScreenState extends State<MainAppScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // IndexedStack is used to preserve the state of each page.
-      // When you switch tabs, the previous tab's state (e.g., scroll position) is not lost.
       body: IndexedStack(
         index: _selectedIndex,
         children: _pages,
       ),
       bottomNavigationBar: BottomNavigationBar(
+        // ✅ Updated the navigation bar items
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.home_rounded),
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.lightbulb_rounded),
-            label: 'Learn',
+            icon: Icon(Icons.checklist_rtl_rounded), // New icon
+            label: 'Challenges', // New label
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.emoji_events_rounded),
@@ -54,11 +53,10 @@ class _MainAppScreenState extends State<MainAppScreen> {
         ],
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
-        // Styling to match our modern theme
         backgroundColor: LearningTheme.surface,
         selectedItemColor: LearningTheme.accent,
         unselectedItemColor: LearningTheme.textSecondary,
-        type: BottomNavigationBarType.fixed, // Good for 3-5 items
+        type: BottomNavigationBarType.fixed,
         showUnselectedLabels: true,
         elevation: 8.0,
       ),

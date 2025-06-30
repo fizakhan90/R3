@@ -1,3 +1,4 @@
+// lib/models/gamification_models.dart
 import 'package:flutter/material.dart';
 
 /// Represents a single unlockable milestone.
@@ -55,18 +56,4 @@ class MilestoneData {
       icon: Icons.auto_awesome,
     ),
   ];
-}
-
-/// A mock service to simulate fetching user progress.
-/// In a real app, this would connect to a database like Firebase or a local DB.
-class UserProgressService {
-  // Let's pretend the user has earned 1550 XP for demonstration.
-  // Try changing this value to see the UI update!
-  final int _currentXP = 1550;
-
-  Future<int> getUserXP() async {
-    // Simulate a network delay
-    await Future.delayed(const Duration(milliseconds: 300));
-    return _currentXP;
-  }
 }

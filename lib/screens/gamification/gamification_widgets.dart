@@ -1,26 +1,25 @@
+// lib/widgets/gamification_widgets.dart
 import 'package:flutter/material.dart';
-import '../learning/learning_theme.dart'; // We can reuse the beautiful theme from before
-import 'gamification_models.dart';
+import 'package:r3/screens/gamification/gamification_models.dart';
+import 'package:r3/screens/learning/learning_theme.dart';
 
-/// A header card that shows the user's current XP and progress to the next goal.
 class ProgressHeaderCard extends StatelessWidget {
   final int currentXP;
-  final Milestone? nextMilestone;
+  final int currentLevel;
+  final int xpInCurrentLevel;
+  final int xpForNextLevel;
 
   const ProgressHeaderCard({
     super.key,
     required this.currentXP,
-    this.nextMilestone,
+    required this.currentLevel,
+    required this.xpInCurrentLevel,
+    required this.xpForNextLevel,
   });
 
   @override
   Widget build(BuildContext context) {
-    final int goalXP = nextMilestone?.xpRequired ?? currentXP;
-    final int previousMilestoneXP = MilestoneData.milestones
-        .lastWhere((m) => m.xpRequired <= currentXP, orElse: () => const Milestone(xpRequired: 0, title: '', description: '', icon: Icons.error))
-        .xpRequired;
-
-    final double progress = (currentXP - previousMilestoneXP) / (goalXP - previousMilestoneXP);
+    final double progress = xpForNextLevel > 0 ? (xpInCurrentLevel.toDouble() / xpForNextLevel.toDouble()) : 0.0;
 
     return Container(
       margin: const EdgeInsets.all(16),
@@ -33,17 +32,13 @@ class ProgressHeaderCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "Your Progress",
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(color: LearningTheme.textPrimary),
-          ),
+          Text("Level $currentLevel", style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 24)),
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("Your XP: $currentXP", style: const TextStyle(color: LearningTheme.textSecondary)),
-              if (nextMilestone != null)
-                Text("Next Goal: $goalXP", style: const TextStyle(color: LearningTheme.textSecondary)),
+              Text("Total XP: $currentXP", style: const TextStyle(color: LearningTheme.textSecondary)),
+              Text("$xpInCurrentLevel / $xpForNextLevel XP", style: const TextStyle(color: LearningTheme.textSecondary)),
             ],
           ),
           const SizedBox(height: 12),
@@ -58,7 +53,7 @@ class ProgressHeaderCard extends StatelessWidget {
                   value: value,
                   minHeight: 12,
                   backgroundColor: LearningTheme.card,
-                  valueColor: AlwaysStoppedAnimation<Color>(LearningTheme.accent),
+                  valueColor: const AlwaysStoppedAnimation<Color>(LearningTheme.accent),
                 ),
               );
             },
@@ -69,7 +64,6 @@ class ProgressHeaderCard extends StatelessWidget {
   }
 }
 
-/// A card representing a single milestone, visually changing based on lock status.
 class MilestoneCard extends StatelessWidget {
   final Milestone milestone;
   final bool isUnlocked;

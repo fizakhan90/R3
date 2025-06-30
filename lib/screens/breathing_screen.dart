@@ -129,8 +129,6 @@ class _BreathingScreenState extends State<BreathingScreen>
 
         final int breathCount = (_elapsedSeconds / 8).floor();
 
-        // ✅ FIX: The entire column, including the counter, is now inside the builder.
-        // This ensures all dependent widgets are rebuilt together.
         return Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -174,7 +172,6 @@ class _BreathingScreenState extends State<BreathingScreen>
 
   /// The view shown after the session is successfully completed.
   Widget _buildSuccessView() {
-    // ... This widget is correct and remains unchanged ...
     return Padding(
       key: const ValueKey('success'),
       padding: const EdgeInsets.all(24.0),

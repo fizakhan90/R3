@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:r3/services/gemini_service.dart'; // Make sure this path is correct
+import 'package:r3/services/gemini_service.dart'; 
 import 'learning_theme.dart';
 import 'learning_widgets.dart';
 import 'learning_models.dart';

@@ -67,10 +67,9 @@ class _XpAnimationWidgetState extends State<XpAnimationWidget>
         child: Material(
           color: Colors.transparent,
           child: Chip(
-            // --- THE FIX IS HERE ---
-            // We must use `widget.xp` to access the property from the StatefulWidget.
+
             label: Text(
-              "+${widget.xp} XP", // Changed `xp` to `widget.xp`
+              "+${widget.xp} XP", 
               style: const TextStyle(
                 color: Colors.black,
                 fontWeight: FontWeight.bold,

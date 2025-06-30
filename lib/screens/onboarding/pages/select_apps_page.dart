@@ -1,7 +1,7 @@
 // lib/screens/onboarding/pages/select_apps_page.dart
 import 'package:flutter/material.dart';
 import 'package:r3/screens/learning/learning_theme.dart';
-import 'package:r3/services/usage_service.dart'; // Make sure this path is correct
+import 'package:r3/services/usage_service.dart'; 
 
 class SelectAppsPage extends StatefulWidget {
   final Function(String, bool) onAppSelected;

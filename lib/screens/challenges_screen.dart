@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:r3/screens/learning/learning_theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
-import 'package:r3/services/user_progress_service.dart'; // Make sure path is correct
+import 'package:r3/services/user_progress_service.dart'; 
 
 class Challenge {
   final String text;

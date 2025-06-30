@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:r3/screens/learning/learning_theme.dart';
 import 'package:r3/services/user_progress_service.dart';
-import 'package:r3/widgets/xp_animation_widget.dart'; // Import the new widget
+import 'package:r3/widgets/xp_animation_widget.dart'; 
 
 class Habit {
   final String text;

@@ -1,6 +1,6 @@
 // lib/screens/main_app_screen.dart
 import 'package:flutter/material.dart';
-import 'package:r3/screens/challenges_screen.dart'; // ✅ Import the new ChallengesScreen
+import 'package:r3/screens/challenges_screen.dart'; 
 import 'package:r3/screens/gamification/gamification_screen.dart';
 import 'package:r3/screens/home_screen.dart';
 import 'package:r3/screens/learning/learning_theme.dart';

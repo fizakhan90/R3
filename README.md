@@ -69,11 +69,11 @@ flutter run
 
 ## 📸 Screenshots
 
-| Home Screen | Chatbot | Disruption Screen | Mindful Pause | Daily Challenge | Gamification | 
-|-------------|---------|-----------------|
-| ![Home](assets/screenshots/home.png) | ![Chatbot](assets/screenshots/chatbot.png) | ![Breathing](assets/screenshots/breathing.png) |
-|-------------|---------|-----------------|
-| ![Home](assets/screenshots/home.png) | ![Chatbot](assets/screenshots/chatbot.png) | ![Breathing](assets/screenshots/breathing.png) |
+## 📸 Screenshots
+
+| Home Screen | Chatbot | Disruption Screen | Mindful Pause | Daily Challenge | Gamification |
+|-------------|---------|-------------------|----------------|------------------|--------------|
+| ![Home](homescreen'.jpg) | ![Chatbot](chatbot.jpg) | ![Disruption](disruptionscreen.jpg) | ![Pause](mindfulpause.jpg) | ![Challenge](dailychallenge.jpg) | ![Gamification](gamification.jpg) |
 
 
 ---
@@ -81,7 +81,7 @@ flutter run
 ## 🏗️ Architecture Diagram
 
 Here's a high-level overview of R3's system design:
-![Architecture Diagram](assets/architecture/r3_diagram.png)
+![Architecture Diagram](r3_diagram.jpg)
 
 ## 🌟 Acknowledgments
 

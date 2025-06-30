@@ -1,57 +1,70 @@
 // lib/screens/onboarding/pages/welcome_page.dart
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:r3/screens/learning/learning_theme.dart';
 
 class WelcomePage extends StatelessWidget {
   const WelcomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // Accessing the theme for consistent styling across the app
+    final textTheme = Theme.of(context).textTheme;
+
     return Padding(
-      padding: const EdgeInsets.all(32.0),
+      padding: const EdgeInsets.symmetric(horizontal: 32.0),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            "R³",
+          // Using RichText to apply different styles within the same text block for branding
+          RichText(
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 60,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+            text: TextSpan(
+              // Use the largest, boldest style from our theme for the main logo
+              style: textTheme.displayLarge,
+              children: [
+                const TextSpan(text: "R"),
+                TextSpan(
+                  text: "³",
+                  style: TextStyle(
+                    color: LearningTheme.accent, // Apply our brand's accent color
+                    fontFeatures: const [FontFeature.superscripts()],
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 16),
           Text(
             "Reboot. Reform. Rebuild.",
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 22,
-              color: Colors.white.withOpacity(0.8),
-            ),
+            // Use the consistent subtitle style from our theme
+            style: textTheme.titleLarge,
           ),
-          const SizedBox(height: 40),
+          const SizedBox(height: 48), // Increased spacing for better visual separation
           Text(
             "Welcome to a more mindful way of using your phone. Let's set up your goals.",
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 18,
-              color: Colors.white.withOpacity(0.7),
-            ),
+            // Use the consistent body text style from our theme for readability
+            style: textTheme.bodyLarge,
           ),
           const SizedBox(height: 100),
-          const Icon(
+          Icon(
             Icons.swipe_left_outlined,
-            color: Colors.white38,
+            // Use a theme color with opacity for a subtle hint
+            color: LearningTheme.textSecondary.withOpacity(0.5),
             size: 40,
           ),
-          const Text(
+          const SizedBox(height: 8),
+          Text(
             "Swipe to begin",
             textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colors.white38,
+            // Use a smaller, secondary text style for the hint
+            style: textTheme.bodyMedium?.copyWith(
+              color: LearningTheme.textSecondary.withOpacity(0.5),
             ),
-          )
+          ),
         ],
       ),
     );

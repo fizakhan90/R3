@@ -1,5 +1,6 @@
 // lib/screens/onboarding/pages/set_goal_page.dart
 import 'package:flutter/material.dart';
+import 'package:r3/screens/learning/learning_theme.dart';
 
 class SetGoalPage extends StatefulWidget {
   final Function(int) onGoalChanged;
@@ -26,72 +27,101 @@ class _SetGoalPageState extends State<SetGoalPage> {
     _currentSliderValue = widget.initialGoal.toDouble();
   }
 
+  // Helper to format the time for display
+  String _formatTime(double value) {
+    final hours = value ~/ 60;
+    final minutes = (value % 60).round();
+    if (hours == 0) return "$minutes min";
+    if (minutes == 0) return "$hours hr";
+    return "$hours hr $minutes min";
+  }
+
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
     return Padding(
-      padding: const EdgeInsets.all(24.0),
+      padding: const EdgeInsets.symmetric(horizontal: 32.0),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
             "What's your daily goal?",
-            style: Theme.of(context)
-                .textTheme
-                .headlineSmall
-                ?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+            style: textTheme.titleLarge?.copyWith(
+              fontSize: 24,
+              color: LearningTheme.textPrimary,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
           Text(
             "This isn't a strict limit, just a target to help you reflect.",
-            style: Theme.of(context)
-                .textTheme
-                .bodyMedium
-                ?.copyWith(color: Colors.white70),
+            style: textTheme.bodyLarge,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 60),
+          // --- Dynamic Goal Display ---
           Text(
-            "${_currentSliderValue.round()} minutes",
-            style: Theme.of(context)
-                .textTheme
-                .headlineMedium
-                ?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+            _formatTime(_currentSliderValue),
+            style: textTheme.displayLarge?.copyWith(
+              fontSize: 48,
+              color: LearningTheme.accent,
+            ),
             textAlign: TextAlign.center,
           ),
-          Slider(
-            value: _currentSliderValue,
-            min: 15,
-            max: 180,
-            divisions: 11, // (180 - 15) / 15 = 11 steps
-            label: _currentSliderValue.round().toString(),
-            activeColor: Colors.deepPurple,
-            inactiveColor: Colors.grey.shade700,
-            onChanged: (double value) {
-              setState(() {
-                _currentSliderValue = value;
-              });
-              // This calls the function in onboarding_screen.dart
-              // to update the goal value.
-              widget.onGoalChanged(value.round());
-            },
+          const SizedBox(height: 24),
+          // --- Themed Slider ---
+          SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              activeTrackColor: LearningTheme.accent,
+              inactiveTrackColor: LearningTheme.surface,
+              trackHeight: 6.0,
+              thumbColor: LearningTheme.accent,
+              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 12.0),
+              overlayColor: LearningTheme.accent.withOpacity(0.24),
+              overlayShape: const RoundSliderOverlayShape(overlayRadius: 28.0),
+              tickMarkShape: const RoundSliderTickMarkShape(tickMarkRadius: 4),
+              activeTickMarkColor: LearningTheme.accent.withOpacity(0.5),
+              inactiveTickMarkColor: LearningTheme.surface,
+              valueIndicatorShape: const PaddleSliderValueIndicatorShape(),
+              valueIndicatorColor: LearningTheme.accent,
+              valueIndicatorTextStyle: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            child: Slider(
+              value: _currentSliderValue,
+              min: 15,
+              max: 180,
+              divisions: 11, // (180 - 15) / 15 = 11 steps of 15 min
+              label: "${_currentSliderValue.round()} min",
+              onChanged: (double value) {
+                setState(() {
+                  _currentSliderValue = value;
+                });
+                widget.onGoalChanged(value.round());
+              },
+            ),
           ),
           const SizedBox(height: 80),
+          // --- Themed Primary Finish Button ---
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.deepPurple,
+              backgroundColor: LearningTheme.accent,
+              foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(30),
               ),
+              textStyle: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            // This calls the onFinished function to save data and navigate away.
             onPressed: widget.onFinished,
-            child: const Text(
-              "Finish Setup",
-              style: TextStyle(fontSize: 18, color: Colors.white),
-            ),
+            child: const Text("Finish Setup & Start"),
           ),
         ],
       ),

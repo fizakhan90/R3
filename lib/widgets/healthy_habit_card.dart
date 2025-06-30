@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:r3/screens/learning/learning_theme.dart';
 import 'package:r3/services/user_progress_service.dart';
+import 'package:r3/widgets/xp_animation_widget.dart'; // Import the new widget
 
-// --- 1. Data Model Updated with Gamification ---
 class Habit {
   final String text;
   final IconData icon;
-  final int xp; // Each habit now has an XP value
+  final int xp;
 
   const Habit({required this.text, required this.icon, required this.xp});
 }
@@ -21,11 +21,10 @@ class HealthyHabitCard extends StatefulWidget {
   State<HealthyHabitCard> createState() => _HealthyHabitCardState();
 }
 
-class _HealthyHabitCardState extends State<HealthyHabitCard> with TickerProviderStateMixin {
-  late AnimationController _xpAnimationController;
+class _HealthyHabitCardState extends State<HealthyHabitCard> {
   final GlobalKey _doneButtonKey = GlobalKey();
+  bool _isDonePressed = false; // To disable the button after one press
 
-  // Updated list of habits with assigned XP values
   final List<Habit> _habits = [
     const Habit(icon: Icons.self_improvement, text: "Take 3 deep, mindful breaths.", xp: 10),
     const Habit(icon: Icons.local_drink, text: "Drink a glass of water.", xp: 5),
@@ -44,7 +43,6 @@ class _HealthyHabitCardState extends State<HealthyHabitCard> with TickerProvider
   void initState() {
     super.initState();
     _currentHabit = _getRandomHabit(null);
-    _xpAnimationController = AnimationController(vsync: this, duration: const Duration(milliseconds: 1500));
   }
 
   Habit _getRandomHabit(Habit? previousHabit) {
@@ -62,14 +60,20 @@ class _HealthyHabitCardState extends State<HealthyHabitCard> with TickerProvider
     });
   }
 
-  // --- 3. Enhanced Feedback and Logic for 'Done' button ---
   void _onDonePressed() {
+    if (_isDonePressed) return; // Prevent multiple clicks
+
+    setState(() {
+      _isDonePressed = true;
+    });
+
     // Grant XP using the central service
     context.read<UserProgressService>().addXP(_currentHabit.xp);
     // Show the rewarding animation
     _showXpAnimation(_currentHabit.xp);
-    // Wait for animation to be visible before closing the dialog
-    Future.delayed(const Duration(milliseconds: 800), () {
+
+    // Wait a bit before closing to let user see animation start
+    Future.delayed(const Duration(milliseconds: 1200), () {
       if (mounted) {
         Navigator.of(context).pop();
       }
@@ -77,52 +81,39 @@ class _HealthyHabitCardState extends State<HealthyHabitCard> with TickerProvider
   }
 
   void _showXpAnimation(int xp) {
-    final RenderBox renderBox = _doneButtonKey.currentContext!.findRenderObject() as RenderBox;
+    // Find the button's position
+    final RenderBox? renderBox = _doneButtonKey.currentContext?.findRenderObject() as RenderBox?;
+    if (renderBox == null) return;
+    
     final position = renderBox.localToGlobal(Offset.zero);
     final size = renderBox.size;
 
-    final overlayEntry = OverlayEntry(
+    late OverlayEntry overlayEntry; // Declare it here to access in the callback
+
+    overlayEntry = OverlayEntry(
       builder: (context) {
         return Positioned(
           top: position.dy - 40, // Start slightly above the button
-          left: position.dx + (size.width / 2) - 30, // Center horizontally
-          child: FadeTransition(
-            opacity: Tween<double>(begin: 1.0, end: 0.0).animate(
-              CurvedAnimation(parent: _xpAnimationController, curve: Curves.easeOut),
-            ),
-            child: SlideTransition(
-              position: Tween<Offset>(begin: Offset.zero, end: const Offset(0, -1.0)).animate(_xpAnimationController),
-              child: Material(
-                color: Colors.transparent,
-                child: Chip(
-                  label: Text("+$xp XP", style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-                  backgroundColor: LearningTheme.accent,
-                  elevation: 4,
-                ),
-              ),
-            ),
+          left: position.dx + (size.width / 2) - 40, // Center horizontally
+          child: XpAnimationWidget(
+            xp: xp,
+            onAnimationComplete: () {
+              // This is the key: remove the overlay only when the animation is truly finished.
+              overlayEntry.remove();
+            },
           ),
         );
       },
     );
 
+    // Insert the overlay and let it handle its own lifecycle.
     Overlay.of(context).insert(overlayEntry);
-    _xpAnimationController.forward(from: 0).then((_) {
-      overlayEntry.remove();
-    });
-  }
-  
-  @override
-  void dispose() {
-    _xpAnimationController.dispose();
-    super.dispose();
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext G) {
     final theme = Theme.of(context);
 
-    // --- 2. UI Overhaul: Using Dialog for a bigger, custom card ---
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.all(16),
@@ -177,13 +168,20 @@ class _HealthyHabitCardState extends State<HealthyHabitCard> with TickerProvider
                       foregroundColor: Colors.black,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      // Change style when pressed to give feedback
+                      disabledBackgroundColor: Colors.green.shade600,
                     ),
-                    onPressed: _onDonePressed,
-                    child: const Text("Done! ✨", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    // Disable the button when pressed
+                    onPressed: _isDonePressed ? null : _onDonePressed,
+                    child: Text(
+                      _isDonePressed ? "XP Gained!" : "Done! ✨",
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
                   ),
                   const SizedBox(height: 8),
                   TextButton(
-                    onPressed: _showAnotherHabit,
+                    // Disable this button too after 'Done' is pressed
+                    onPressed: _isDonePressed ? null : _showAnotherHabit,
                     child: const Text(
                       "Try another suggestion",
                       style: TextStyle(color: LearningTheme.textSecondary),

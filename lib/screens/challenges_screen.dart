@@ -5,12 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:r3/screens/learning/learning_theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
-import 'package:r3/services/user_progress_service.dart';
+import 'package:r3/services/user_progress_service.dart'; // Make sure path is correct
 
-
-
-// --- 1. A more structured data model for challenges ---
-// This makes the code cleaner and allows for future expansion (e.g., descriptions, points).
 class Challenge {
   final String text;
   final String category;
@@ -31,9 +27,8 @@ class ChallengesScreen extends StatefulWidget {
 }
 
 class _ChallengesScreenState extends State<ChallengesScreen> {
-  // --- 2. An expanded list of psychologically-grounded challenges ---
   final List<Challenge> _allChallenges = [
-    // --- Category: Mindfulness & Presence ---
+    // Mindfulness & Presence
     const Challenge(
       text: "Do a 1-minute 'box breath' exercise: Inhale (4s), Hold (4s), Exhale (4s), Hold (4s).",
       category: "Mindfulness",
@@ -42,41 +37,41 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
     const Challenge(
       text: "Place your phone in another room for 15 minutes and simply observe your surroundings.",
       category: "Mindfulness",
-      icon: Icons.self_improvement_rounded,
+      icon: Icons.visibility_off_outlined,
     ),
     const Challenge(
       text: "Listen to a full song with your eyes closed, without any other distractions.",
       category: "Mindfulness",
-      icon: Icons.self_improvement_rounded,
+      icon: Icons.music_note_outlined,
     ),
 
-    // --- Category: Focus & Cognition ---
+    // Focus & Cognition
     const Challenge(
       text: "Read 5 pages from a physical book or an e-reader (not a social media article).",
       category: "Focus & Cognition",
-      icon: Icons.psychology_rounded,
+      icon: Icons.menu_book_outlined,
     ),
     const Challenge(
       text: "Work on a single task for 25 minutes without checking your phone (The Pomodoro Technique).",
       category: "Focus & Cognition",
-      icon: Icons.psychology_rounded,
+      icon: Icons.timer_outlined,
     ),
     const Challenge(
       text: "Before opening a social app, state your exact purpose out loud (e.g., 'I'm checking messages from Jane').",
       category: "Focus & Cognition",
-      icon: Icons.psychology_rounded,
+      icon: Icons.psychology_outlined,
     ),
 
-    // --- Category: Movement & Body ---
+    // Movement & Body
     const Challenge(
       text: "Do a 5-minute stretching routine, focusing on your neck, shoulders, and back.",
       category: "Movement & Body",
-      icon: Icons.directions_run_rounded,
+      icon: Icons.sports_gymnastics_outlined,
     ),
     const Challenge(
-      text: "Take a 10-minute walk and try to notice 5 things in your environment you've never seen before.",
+      text: "Take a 10-minute walk and try to notice 5 things you've never seen before.",
       category: "Movement & Body",
-      icon: Icons.directions_run_rounded,
+      icon: Icons.directions_walk_rounded,
     ),
     const Challenge(
       text: "Stand up and do 20 jumping jacks or high-knees to get your blood flowing.",
@@ -84,27 +79,28 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
       icon: Icons.directions_run_rounded,
     ),
 
-    // --- Category: Connection & Gratitude ---
+    // Connection & Gratitude
     const Challenge(
       text: "Write down three specific things that went well today, no matter how small.",
       category: "Connection & Gratitude",
-      icon: Icons.favorite_rounded,
+      icon: Icons.edit_note_outlined,
     ),
     const Challenge(
       text: "Send a genuine message to a friend or family member telling them you appreciate them.",
       category: "Connection & Gratitude",
-      icon: Icons.favorite_rounded,
+      icon: Icons.favorite_border_rounded,
     ),
     const Challenge(
       text: "Call a friend or family member for a 5-minute chat instead of texting.",
       category: "Connection & Gratitude",
-      icon: Icons.favorite_rounded,
+      icon: Icons.phone_in_talk_outlined,
     ),
   ];
 
   Challenge? _dailyChallenge;
   int _challengeStreak = 0;
   bool _isChallengeCompletedToday = false;
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -120,35 +116,63 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
     final lastCompletedDateString = prefs.getString('lastCompletedDate');
     _isChallengeCompletedToday = lastCompletedDateString == todayKey;
 
-    _challengeStreak = prefs.getInt('challengeStreak') ?? 0;
+    // --- Streak Logic: Check if the last completion was yesterday ---
+    final yesterday = now.subtract(const Duration(days: 1));
+    final yesterdayKey = "${yesterday.year}-${yesterday.month}-${yesterday.day}";
+    if (lastCompletedDateString == yesterdayKey) {
+      _challengeStreak = prefs.getInt('challengeStreak') ?? 0;
+    } else if (lastCompletedDateString != todayKey) {
+      // If they missed a day (or more), reset the streak
+      _challengeStreak = 0;
+      await prefs.setInt('challengeStreak', 0);
+    } else {
+      _challengeStreak = prefs.getInt('challengeStreak') ?? 0;
+    }
 
+    // Use a date-based seed for a consistent daily challenge
     final seed = now.year * 10000 + now.month * 100 + now.day;
     final random = Random(seed);
-    _allChallenges.shuffle(random);
-    _dailyChallenge = _allChallenges.first;
+    // Create a shuffled list without modifying the original
+    final shuffledList = List<Challenge>.from(_allChallenges)..shuffle(random);
+    _dailyChallenge = shuffledList.first;
 
     if (mounted) {
-      setState(() {});
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
+  // --- FULLY IMPLEMENTED COMPLETION LOGIC ---
   Future<void> _markChallengeAsCompleted() async {
-  // ... [existing logic to handle prefs and streaks]
+    // 1. Grant XP using the central service
+    const int challengeXP = 50;
+    context.read<UserProgressService>().addXP(challengeXP);
 
-  // ✅ Add a fixed amount of XP for completing a daily challenge
-  const int challengeXP = 50;
-  context.read<UserProgressService>().addXP(challengeXP);
+    // 2. Update local state immediately for a responsive UI
+    setState(() {
+      _isChallengeCompletedToday = true;
+      _challengeStreak++; // Increment streak visually right away
+    });
 
-  // ... [existing setState logic]
+    // 3. Save the new state to SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    final now = DateTime.now();
+    final todayKey = "${now.year}-${now.month}-${now.day}";
+    await prefs.setString('lastCompletedDate', todayKey);
+    await prefs.setInt('challengeStreak', _challengeStreak);
 
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      // ✅ Updated message to show XP earned
-      content: Text("🎉 Great job! +$challengeXP XP. Streak: $_challengeStreak day(s)."),
-      backgroundColor: Colors.green,
-    ),
-  );
-}
+    // 4. Show a success message
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("🎉 Great job! +$challengeXP XP. Streak: $_challengeStreak day(s)."),
+        backgroundColor: const Color(0xFF2ECC71), // A pleasant green
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(16),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -162,8 +186,8 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: _dailyChallenge == null
-            ? const Center(child: CircularProgressIndicator())
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator(color: LearningTheme.accent))
             : Column(
                 children: [
                   const SizedBox(height: 20),
@@ -177,7 +201,6 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // --- 3. Updated UI with Category Tag ---
                         Chip(
                           avatar: Icon(_dailyChallenge!.icon, color: LearningTheme.accent, size: 18),
                           label: Text(
@@ -192,19 +215,22 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
                           _dailyChallenge!.text,
                           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                                 color: LearningTheme.textPrimary,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.normal,
                                 height: 1.4,
                               ),
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 32),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
                               _isChallengeCompletedToday ? "✅ Completed" : "🔄 In Progress",
                               style: TextStyle(
-                                color: _isChallengeCompletedToday ? Colors.greenAccent : Colors.orangeAccent,
+                                color: _isChallengeCompletedToday
+                                    ? const Color(0xFF2ECC71)
+                                    : const Color(0xFFF39C12),
                                 fontWeight: FontWeight.bold,
+                                fontSize: 16,
                               ),
                             ),
                             Text(
@@ -212,27 +238,38 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
                               style: const TextStyle(
                                 color: LearningTheme.textSecondary,
                                 fontWeight: FontWeight.bold,
+                                fontSize: 16,
                               ),
                             ),
                           ],
                         ),
-                        if (!_isChallengeCompletedToday) ...[
-                          const SizedBox(height: 20),
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton.icon(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                              ),
-                              onPressed: _markChallengeAsCompleted,
-                              icon: const Icon(Icons.check_circle_outline),
-                              label: const Text("Mark as Done", style: TextStyle(fontWeight: FontWeight.bold)),
-                            ),
-                          ),
-                        ],
+                        const SizedBox(height: 24),
+                        // --- Animated Button Visibility ---
+                        AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 300),
+                          transitionBuilder: (child, animation) {
+                            return FadeTransition(
+                              opacity: animation,
+                              child: SizeTransition(sizeFactor: animation, child: child),
+                            );
+                          },
+                          child: !_isChallengeCompletedToday
+                              ? SizedBox(
+                                  width: double.infinity,
+                                  child: ElevatedButton.icon(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: LearningTheme.accent,
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(vertical: 16),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                    ),
+                                    onPressed: _markChallengeAsCompleted,
+                                    icon: const Icon(Icons.check_circle_outline),
+                                    label: const Text("Mark as Done", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                  ),
+                                )
+                              : const SizedBox.shrink(), // Show nothing when completed
+                        ),
                       ],
                     ),
                   ),

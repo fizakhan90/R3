@@ -81,7 +81,7 @@ flutter run
 ## 🏗️ Architecture Diagram
 
 Here's a high-level overview of R3's system design:
-![Architecture Diagram](r3_diagram.jpg)
+![Architecture Diagram](r3_diagram.png)
 
 ## 🌟 Acknowledgments
 
